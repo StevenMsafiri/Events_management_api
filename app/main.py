@@ -1,11 +1,9 @@
 from  flask import Flask
+from routes.users import users_routes_bp
 
 app=Flask(__name__)
+app.register_blueprint(users_routes_bp, url_prefix='/users')
 
-
-@app.route('/')
-def home():
-    return "This is an Event Management Api"
 
 if __name__== '__main__':
     app.run(debug=True)

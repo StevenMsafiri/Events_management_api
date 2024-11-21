@@ -15,7 +15,3 @@ def create_connection():
     except Error as e:
         print(f"The error '{e}' occurred")
     return connection
-
-# Connect to the database
-connection = create_connection()
-cursor = connection.cursor()

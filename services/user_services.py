@@ -1,4 +1,7 @@
-from app.config import cursor
+from app.config import create_connection
+
+connection = create_connection()
+cursor = connection.cursor()
 
 #create a new user
 def create_user(data):
@@ -9,45 +12,38 @@ def create_user(data):
 
     try:
         cursor.execute(query, (data['username'], data['email'], data['password']))
-        cursor.connection.commit()
+        connection.commit()  # Commit the changes to the database
+
+        # Return the user data along with a 201 status code
+        return {"message": "User created successfully"}, 201
     except Exception as e:
-        print(e)
-    finally:
-        cursor.close()
+        return {"message": str(e)}, 400
 
 #fetch a user using user id
 def get_user(user_id):
     """Query to get user information from the users table"""
-    query = "SELECT id FROM users WHERE id = %s"
+    query = "SELECT id,username, email, password FROM users WHERE id = %s"
 
     try:
-        cursor.execute(query, (user_id,))
-        user = cursor.fetchone()
-        cursor.connection.commit()
-        if not user:
-            return "Invalid id, User not found"
-        return user
+        with connection.cursor(dictionary=True) as cursor:
+            cursor.execute(query, (user_id,))
+            user = cursor.fetchone()
+            return user
     except Exception as e:
-        print(f"Error fetching user: {e}")
-        return "Error, Failed to fetch user"
+        return f"Error fetching user: {e}", 500
 
-    finally:
-        cursor.close()
 
-# FEtch all the users inthe dtabse
+# FEtch all the users in the dtabse
 def get_all_users():
     """Query to get all user information from the users table"""
-    query = "SELECT * FROM users"
-
+    query = "SELECT id, username, email,password FROM users"
+    connection = create_connection()
     try:
-        cursor.execute(query)
-        users = cursor.fetchall()
-        cursor.connection.commit()
-        if not users:
-            return "No users found"
-        return users
+        with connection.cursor(dictionary=True) as cursor:
+            cursor.execute(query)
+            users = cursor.fetchall()
+            if not users:
+                return {"No users found"}, 404
+            return users
     except Exception as e:
-        print(f"Error fetching users: {e}")
-        return "Error, Failed to fetch users"
-    finally:
-        cursor.close()
+        return {f"Error fetching users: {e}"}, 504
