@@ -1,6 +1,8 @@
-from flask import Blueprint,jsonify, request,abort
+from http.client import responses
+
+from flask import Blueprint,request
 from flask_restx import Api, Resource, fields
-from services.user_services import create_user,get_user,get_all_users
+from services.user_services import create_user,get_user,get_all_users,delete_user,update_user
 
 users_routes_bp =Blueprint('users',__name__)
 
@@ -35,6 +37,5 @@ class User(Resource):
     @api.marshal_with(users_routes_model)
     def get(self, user_id):
         user = get_user(user_id)
-        if not user:
-            api.abort(404)
-        return user, 200
+        return user
+

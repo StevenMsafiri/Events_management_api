@@ -1,4 +1,7 @@
-from app.config import cursor
+from app.config import create_connection
+
+connection = create_connection()
+cursor = connection.cursor()
 
 # create a new event
 def create_event(data):
@@ -52,4 +55,42 @@ def get_event(id):
     finally:
         cursor.connection.commit()
         cursor.close()
+
+def delete_event(id):
+    """Query to delete an event in the table of events"""
+    query="DELETE FROM events WHERE id=%s"
+
+    try:
+        cursor.execute(query, (id,))
+        connection.commit()
+        return f"Event {id} deleted"
+    except Exception as e:
+        return f"Failed to delete event: {e}"
+
+def update_event(id):
+    """Query to get a specific event in the table of events"""
+    search_query="SELECT * FROM events WHERE id=%s"
+
+    """Query to update a specific event in the table of events"""
+    update_query = """UPDATE events SET title=%s,description=%s,start_time=%s, end_time=%s, location=%s, email=%s, user=%s  WHERE id=%s"""
+
+    try:
+        cursor.execute(search_query, (id,))
+        event = cursor.fetchone()
+        if not event:
+            return f"No event found"
+        else:
+            cursor.execute(update_query, (event["title"], event["description"], event["start_time"], event["end_time"],))
+            connection.commit()
+            cursor.close()
+            return f"Event updated successfully"
+    except Exception as e:
+        return f"Failed to update event: {e}"
+
+
+
+
+
+
+
 
