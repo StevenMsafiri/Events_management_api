@@ -1,27 +1,25 @@
-from http.client import responses
+from flask import request
+from flask_restx import Namespace, Resource, fields
+from services.user_services import create_user, get_user, get_all_users, delete_user, update_user
 
-from flask import Blueprint,request
-from flask_restx import Api, Resource, fields
-from services.user_services import create_user,get_user,get_all_users,delete_user,update_user
-
-users_routes_bp =Blueprint('users',__name__)
-
-api = Api(users_routes_bp, version = "1.0", title='Users API', description='API for and management users')
+# Define the Namespace
+users_ns = Namespace('Users Operations', description='API for user management')
 
 # Model for Swagger documentation
-users_routes_model = api.model('Users', {
+users_model = users_ns.model('Users', {
     'id': fields.Integer(readOnly=True),
-    'username': fields.String(required = True, description='The username'),
-    'email': fields.String(required = True, description='The user email'),
-    'password': fields.String(required = True, description='The password')
+    'username': fields.String(required=True, description='The username'),
+    'email': fields.String(required=True, description='The user email'),
+    'password': fields.String(required=True, description='The password'),
 })
 
-@api.route('/users')
+@users_ns.route('/')
 class UserResource(Resource):
-    @api.expect(users_routes_model)
-    @api.response(201, 'User created successfully')
-    @api.response(400, 'Bad Request')
+    @users_ns.expect(users_model)
+    @users_ns.response(201, 'User created successfully')
+    @users_ns.response(400, 'Bad Request')
     def post(self):
+        """Adds a new user."""
         data = request.json
         response, status_code = create_user(data)
         return response, status_code
@@ -31,11 +29,34 @@ class UserResource(Resource):
         users = get_all_users()
         return users, 200
 
-@api.route('/users/<int:user_id>')
-@api.doc(params={'user_id': 'The user id'})
+@users_ns.route('/<int:user_id>')
+@users_ns.doc(params={'user_id': 'The user id'})
 class User(Resource):
-    @api.marshal_with(users_routes_model)
+    @users_ns.marshal_with(users_model)
     def get(self, user_id):
+        """Get a specific user by ID."""
         user = get_user(user_id)
         return user
 
+    @users_ns.response(200, "User deleted successfully")
+    @users_ns.response(404, "User not found")
+    def delete(self, user_id):
+        """Delete a specific user by ID."""
+        response, status_code = delete_user(user_id)
+        if status_code == 404:
+            users_ns.abort(404, f"User {user_id} not found")
+        return response, status_code
+
+    @users_ns.expect(users_model)
+    @users_ns.response(200, "User updated successfully")
+    @users_ns.response(404, "User not found")
+    def put(self, user_id):
+        """Update an existing user."""
+        data = request.json
+        username = data.get("username")
+        email = data.get("email")
+        password = data.get("password")
+        response, status_code = update_user(user_id, username, email, password)
+        if status_code == 404:
+            users_ns.abort(404, f"User {user_id} not found")
+        return response, status_code
