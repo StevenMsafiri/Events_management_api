@@ -19,6 +19,7 @@ def create_user(data):
         return {"message": "User created successfully"}, 201
     except Exception as e:
         connection.rollback()
+        connection.close()
         return {"message": str(e)}, 400
 
 #fetch a user using user id
@@ -33,6 +34,7 @@ def get_user(user_id):
             return user
     except Exception as e:
         connection.rollback()
+        connection.close()
         return f"Error fetching user: {e}", 500
 
 
@@ -50,6 +52,7 @@ def get_all_users():
             return users
     except Exception as e:
         connection.rollback()
+        connection.close()
         return {f"Error fetching users: {e}"}, 504
 
 
@@ -67,6 +70,7 @@ def delete_user(id):
         return f"User {id} deleted successfully", 200
     except Exception as e:
         connection.rollback()  # Ensure rollback on error
+        connection.close()
         return f"Failed to delete event: {e}", 500
 
 def update_user(id, username, email, password):
@@ -83,7 +87,6 @@ def update_user(id, username, email, password):
 
         if not event:
             return f"No user found with ID {id}", 404
-
         # If event exists, update it
         cursor.execute(update_query, (username, email, password, id))
         connection.commit()
@@ -94,4 +97,5 @@ def update_user(id, username, email, password):
         return f"User {id} updated successfully", 200
     except Exception as e:
         connection.rollback()  # Ensure rollback on error
+        connection.close()
         return f"Failed to update user: {e}", 500

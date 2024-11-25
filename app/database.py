@@ -1,4 +1,7 @@
-from config import cursor
+from config import create_connection
+
+connection = create_connection()
+cursor = connection.cursor()
 
 cursor.execute("""
 
