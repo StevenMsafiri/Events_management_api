@@ -22,9 +22,8 @@ cursor.execute("""
         end_time DATETIME,
         location VARCHAR(255),
         email VARCHAR(120),
-        user INT,
+        user_id INT,
         FOREIGN KEY (user) REFERENCES users(id)
-
     )
 """)
 

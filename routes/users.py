@@ -27,7 +27,7 @@ class UserResource(Resource):
     def get(self):
         """Get all users."""
         users = get_all_users()
-        return users, 200
+        return users, 201
 
 @users_ns.route('/<int:user_id>')
 @users_ns.doc(params={'user_id': 'The user id'})
