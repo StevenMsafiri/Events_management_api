@@ -1,7 +1,5 @@
-from asyncio import Event
 from flask import request
 from flask_restx import Namespace, Resource, fields
-from sqlalchemy.sql.coercions import expect
 from services.event_services import create_event, get_events, get_event, delete_event, update_event
 
 events_ns = Namespace("Event Processes", description="APIs for events related operations")
@@ -14,8 +12,7 @@ events_model = events_ns.model("Events", {
     'start_time':fields.DateTime(required=True, description='Starting time and date'),
     'end_time':fields.DateTime(required=True, description='Ending time and date'),
     'location':fields.String(required=True, description='Location'),
-    'email':fields.String(required=True, description='Email'),
-    'user_id':fields.Integer(required=True, description='User id')
+    'email':fields.String(required=True, description='Email')
 })
 
 @events_ns.route("/")
@@ -57,10 +54,9 @@ class Event(Resource):
         start_date = data.get("start_date")
         end_date = data.get("end_date")
         location = data.get("location")
-        user_id = data.get("user_id")
         email = data.get("email")
 
-        response = update_event(event_id, title, description, start_date, end_date, location, user_id, email)
+        response = update_event(event_id, title, description, start_date, end_date, location, email)
         return response
 
 

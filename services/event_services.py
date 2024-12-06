@@ -1,5 +1,3 @@
-from flask import jsonify
-
 from app.config import create_connection, convert_to_mysql_datetime, mysql_to_iso
 import  logging
 
@@ -8,7 +6,7 @@ mydb = create_connection()
 # create a new event
 def create_event(data):
     """Query to create a new event in the table of events"""
-    query = """ INSERT INTO events(id, title, description, start_time, end_time, location, email, user_id)
+    query = """ INSERT INTO events(id, title, description, start_time, end_time, location, email)
     VALUES(%s, %s, %s, %s, %s, %s, %s, %s)"""
 
     # Convert ISO datetime strings to MySQL datetime format
@@ -19,7 +17,7 @@ def create_event(data):
         with mydb.cursor() as cursor:
             cursor.execute(query, (
                 data["id"], data["title"], data["description"], mysql_start_time, mysql_end_time, data["location"],
-                data["email"], data["user_id"]))
+                data["email"]))
             mydb.commit()
             return f"Event {data['id']} created"
     except Exception as e:
@@ -27,53 +25,67 @@ def create_event(data):
 
 # fetch all events
 def get_events():
-    """Query to get all events in the table of events"""
-    query= "SELECT * FROM events"
+    """Query to get all events in the table of events."""
+    query = "SELECT * FROM events"
     try:
         with mydb.cursor() as cursor:
             cursor.execute(query)
             events = cursor.fetchall()
+
             if not events:
-                return f"No events found"
+                return {"message": "No events found", "events": []}, 200
+
             events_list = []
             for event in events:
                 event_dict = {
-                    "id": event['id'],
-                    "title": event['title'],
-                    "description": event['description'],
-                    "start_time": mysql_to_iso(event["start_time"]),
-                    "end_time": mysql_to_iso(event["end_time"]),
-                    "location": event["location"],
-                    "email": event["email"],
-                    "user_id": event["user_id"]
+                    "id": event[0],
+                    "title": event[1],
+                    "description": event[2],
+                    "start_time": mysql_to_iso(event[3]),
+                    "end_time": mysql_to_iso(event[4]),
+                    "location": event[5],
+                    "email": event[6],
                 }
                 events_list.append(event_dict)
-            return jsonify(events_list)
+
+            return {"message": "Success", "events": events_list}, 200
+
     except Exception as e:
-        return f"Failed to get events: {e}"
+        print(f"Error fetching events: {e}")
+        return {"error": f"Failed to get events: {str(e)}"}, 500
 
-# fetch one event
+# Fetch one item
 def get_event(event_id):
-    """Query to get a specific event in the table of events"""
+    """Query to get a specific event in the table of events."""
 
-    query="SELECT * FROM events WHERE id=%s"
+    query = "SELECT * FROM events WHERE id=%s"
 
     try:
-        with mydb.cursor(dictionary=True) as cursor:
+        # Use a dictionary cursor to fetch the event as a dict
+        with mydb.cursor() as cursor:
             cursor.execute(query, (event_id,))
             event = cursor.fetchone()
+
             if not event:
                 logging.error(f"No event found with id: {event_id}")
-                return {'message': 'No event found, Check the event_id'}
-            # Convert datetime fields to string for serialization
-            event['start_time'] = mysql_to_iso(event['start_time'])
-            event['end_time'] = mysql_to_iso(event['end_time'])
-            return event
+                return {'message': 'No event found, check the event_id'}, 404
+
+            # Manually map event data since dictionary cursor is removed
+            event_dict = {
+                "id": event[0],
+                "title": event[1],
+                "description": event[2],
+                "start_time": mysql_to_iso(event[3]),
+                "end_time": mysql_to_iso(event[4]),
+                "location": event[5],
+                "email": event[6]
+            }
+
+            return event_dict, 200
 
     except Exception as e:
         logging.error(f"Failed to get event: {e}")
-        return {'message': 'Failed to get event: {}'.format(e)}
-
+        return {'message': f'Failed to get event: {str(e)}'}, 500
 
 
 def delete_event(id):
@@ -95,7 +107,7 @@ def update_event(event_id, new_data):
 
 
     """Query to update a specific event in the table of events"""
-    update_query = """UPDATE events SET title=%s,description=%s,start_time=%s, end_time=%s, location=%s, email=%s, user_id=%s  WHERE id=%s"""
+    update_query = """UPDATE events SET title=%s,description=%s,start_time=%s, end_time=%s, location=%s, email=%s WHERE id=%s"""
 
     try:
         with mydb.cursor() as cursor:
@@ -104,12 +116,19 @@ def update_event(event_id, new_data):
             if not event:
                 return f"No event found"
             else:
-                cursor.execute(update_query, (new_data["id"], new_data["title"], new_data["description"], new_data["start_time"], new_data["end_time"],
-                                              new_data["location"], new_data["email"], new_data["user_id"]))
+                # Convert datetime fields if they exist
+                start_time = mysql_to_iso(new_data.get("start_time"))
+                end_time = mysql_to_iso(new_data.get("end_time"))
+
+                cursor.execute(update_query, (new_data["title"], new_data["description"], end_time,
+                                              new_data["location"], new_data["email"], event_id))
                 mydb.commit()
-                return f"Event updated successfully"
+                return {"message": "Event updated successfully", "status": "success"}, 200
     except Exception as e:
-        return f"Failed to update event: {e}"
+        return {"message": f"Failed to update event: {str(e)}", "status": "error"}, 500
+
+
+
 
 
 

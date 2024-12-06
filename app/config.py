@@ -35,12 +35,30 @@ def convert_to_mysql_datetime(iso_datetime):
     return datetime_obj.strftime('%Y-%m-%d %H:%M')
 
 
+from datetime import datetime
+
+
 def mysql_to_iso(mysql_datetime):
-    """Converts MySQL DATETIME to ISO format"""
+    """Converts MySQL DATETIME to ISO 8601 format."""
     try:
-        dt = datetime.strptime(mysql_datetime, '%Y-%m-%d %H:%M:%S')
-        return dt.isoformat()
-    except ValueError as e:
+        # Check if the input is already a datetime object
+        if isinstance(mysql_datetime, datetime):
+            return mysql_datetime.isoformat()  # Convert directly to ISO format
+
+        # If it's a string, parse it using the known format
+        elif isinstance(mysql_datetime, str):
+            dt = datetime.strptime(mysql_datetime, '%Y-%m-%d %H:%M')
+            return dt.isoformat()
+
+        # Handle None gracefully
+        elif mysql_datetime is None:
+            return None
+
+        # Unexpected type fallback
         return None
+    except Exception as e:
+        print(f"Error in mysql_to_iso: {e}")
+        return None
+
 
 
