@@ -1,9 +1,4 @@
-from xxlimited_35 import error
-
-from mysql.connector.django import validation
-
 from app.config import create_connection
-
 mydb = create_connection()
 
 
@@ -66,10 +61,12 @@ def get_user_bookings(user_id):
                     "event_title": booking[1],
                     "start_time": booking[2],
                     "end_time": booking[3],
-                    "location": booking[4],
+                    "location": booking[4]
                 }
                 for booking in bookings
             ]
+
+            # print(bookings_list)
 
             return {"bookings": bookings_list}
 
@@ -87,5 +84,5 @@ def cancel_booking(booking_id):
             return {'message': 'Booking deleted successfully'}, 201
     except Exception as e:
         mydb.rollback()
-        return {'message': f'Failed to cancel booking: {str(e)}'}, 400
+        return {'message': f'Failed to cancel booking: {str(e)}'}, 404
 
