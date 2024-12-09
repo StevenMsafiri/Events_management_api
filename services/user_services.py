@@ -1,6 +1,9 @@
 from app.db_config import create_connection
 
 connection = create_connection()
+cursor = connection.cursor()
+
+
 
 #create a new user
 def create_user(data):

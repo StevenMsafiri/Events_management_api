@@ -3,7 +3,7 @@ from app.db_config import create_connection
 import  logging
 
 mydb = create_connection()
-
+# print(mydb.database,"WHAT I GET HERE!!")
 # create a new event
 def create_event(data):
     """Query to create a new event in the table of events"""
@@ -121,7 +121,7 @@ def update_event(event_id, new_data):
                 start_time = mysql_to_iso(new_data.get("start_time"))
                 end_time = mysql_to_iso(new_data.get("end_time"))
 
-                cursor.execute(update_query, (new_data["title"], new_data["description"], end_time,
+                cursor.execute(update_query, (new_data["title"], new_data["description"],start_time, end_time,
                                               new_data["location"], new_data["email"], event_id))
                 mydb.commit()
                 return {"message": "Event updated successfully", "status": "success"}, 200
@@ -130,11 +130,4 @@ def update_event(event_id, new_data):
 
 
 
-
-
-
-
-
-
-
-
+get_events()
