@@ -1,4 +1,5 @@
-from app.config import create_connection, convert_to_mysql_datetime, mysql_to_iso
+from app.date_conversions import convert_to_mysql_datetime, mysql_to_iso
+from app.db_config import create_connection
 import  logging
 
 mydb = create_connection()

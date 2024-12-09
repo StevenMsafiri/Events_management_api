@@ -1,4 +1,4 @@
-from app.config import create_connection
+from app.db_config import create_connection
 mydb = create_connection()
 
 
