@@ -1,3 +1,2 @@
-.idea
 .git/logs
-.venv/*
+.venv/.env

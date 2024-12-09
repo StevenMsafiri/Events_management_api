@@ -1,7 +1,6 @@
 from app.db_config import create_connection
 
 connection = create_connection()
-cursor = connection.cursor()
 
 #create a new user
 def create_user(data):
@@ -16,7 +15,7 @@ def create_user(data):
         connection.rollback()
 
         # Return the user data along with a 201 status code
-        return {"message": "User created successfully"}, 201g
+        return {"message": "User created successfully"}, 201
     except Exception as e:
         connection.rollback()
         connection.close()
